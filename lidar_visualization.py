@@ -3,7 +3,7 @@
 from lidar_faker_class import *
 import time
 from visual import *
-
+from visual.text import *
 
 lidarData = [[] for i in range(360)] #A list of 360 elements Angle, Distance , quality
 
@@ -16,10 +16,14 @@ visualization = True
 lidar = lidar_faker()
 
 #setup the window, view, etc
-scene.forward = (1, -1, 0)
+scene =  display(title='PROTOX1 LIDAR Data',
+     x=0, y=0, width=1200, height=800,
+     center=(5,0,0), background=(0,1,1))
+
+scene.forward = (1, -.5,0)
 scene.background = (0.1, 0.1, 0.2)
 scene.title = "ProtoX1 Lidar Distance"
-
+scene.show_rendertime = 1
 
 class grid:
     """A graphical grid, with two level of subdivision.
@@ -135,9 +139,12 @@ def update_view( x_degree, y_degree, dist, quality ):
             if use_lines : lines[ x_degree].pos[1]=( dist_x, 0, dist_y)
             if use_outer_line : outer_line.pos[ x_degree]=( dist_x, 0, dist_y)
 '''     
-
-
+message = text(pos=(0,0,0), string='PROTOX1 DATA', justify='center',
+               color=color.yellow, axis=(0,0,1), height=100,
+                depth=0.3, up=(10,10,-0.3))
+time.sleep(5)
 while True:
+
 	print lidar.x_degree, lidar.y_degree, lidar.dist, lidar.quality
  	update_view (lidar.x_degree, lidar.y_degree, lidar.dist, lidar.quality )
 	#rate(560) # synchonous repaint at 60fps

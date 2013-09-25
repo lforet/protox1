@@ -16,7 +16,7 @@ class lidar_faker():
 	
 	def run(self):
 		while True:
-			time.sleep(.0001)
+			time.sleep(.0005)
 			self.read_lidar()
 			
 	def read_lidar(self):
