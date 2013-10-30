@@ -10,6 +10,8 @@ lidarData = [[] for i in range(360)] #A list of 360 elements Angle, Distance , q
 
 offset = 140
 fps_rate = 60
+angle_correction = 10
+					
 
 #lidar = lidar_faker(resolution)
 lidar = mobot_lidar3d("/dev/ttyUSB0", 115200, 3)
@@ -27,9 +29,9 @@ scene.show_rendertime = 1
 
 
 point = points(pos=[(0,0,0) for i in range(360)], size=5, color=(0 , 1, 0))
-pointb = points(pos=[(0,0,0) for i in range(360)], size=5, color=(0.4, 0, 0))
+#pointb = points(pos=[(0,0,0) for i in range(360)], size=5, color=(0.4, 0, 0))
 point2 = points(pos=[(0,0,0) for i in range(360)], size=3, color=(1 , 1, 0))
-point2b = points(pos=[(0,0,0) for i in range(360)], size=3, color=(0.4, 0.4, 0))
+#point2b = points(pos=[(0,0,0) for i in range(360)], size=3, color=(0.4, 0.4, 0))
 #lines
 outer_line= curve (pos=[(0,0,0) for i in range(360)], size=5, color=(1 , 0, 0))
 lines=[curve(pos=[(offset*cos(i* pi / 180.0),0,offset*-sin(i* pi / 180.0)),(offset*cos(i* pi / 180.0),0,offset*-sin(i* pi / 180.0))], color=[(0.1, 0.1, 0.2),(1,0,0)]) for i in range(360)]
@@ -60,31 +62,38 @@ use_lines = True
 use_intensity = False
 
 def adjust_angle(x):
-	temp_angle = x + 190
+	global angle_correction 
+	temp_angle = x + angle_correction
+
+	#if (x >= 90 and x <= 270):
+	#	temp_angle = x + 180 
 	if (temp_angle > 360):
 		temp_angle = temp_angle - 360
 	if (temp_angle == 360): temp_angle = 359
+	#if (temp_angle < 0):
+	#	temp_angle = temp_angle + 360
+	#if (temp_angle == 360): temp_angle = 359
 	return temp_angle
 
 def reset_data():
 	for i in range(360):
 		#reset the point display
 		point.pos[i] = vector( 0, 0, 0 )
-		pointb.pos[i] = vector( 0, 0, 0 )
+		#pointb.pos[i] = vector( 0, 0, 0 )
 		point2.pos[i] = vector( 0, 0, 0 )
-		point2b.pos[i] = vector( 0, 0, 0 )
-
-
+		#point2b.pos[i] = vector( 0, 0, 0 )
 
 def update_view( x_degree, dist, quality ):
 
 
 	global offset, use_outer_line, use_line
 	
-	if (x_degree >= 0 and x_degree <= 359):
+	if (x_degree >= 0 and x_degree <= 359 and dist < 350):
+		#reset_data()
 		print "raw:" , x_degree
 		x_degree = adjust_angle(x_degree)
 		print "adjusted:" , x_degree
+		
 		x_degree_rad = x_degree * math.pi / 180.0
 		c = math.cos(x_degree_rad)
 		s = -math.sin(x_degree_rad)
@@ -94,9 +103,9 @@ def update_view( x_degree, dist, quality ):
 
 		#reset the point display
 		point.pos[x_degree] = vector( 0, 0, 0 )
-		pointb.pos[x_degree] = vector( 0, 0, 0 )
+		#pointb.pos[x_degree] = vector( 0, 0, 0 )
 		point2.pos[x_degree] = vector( 0, 0, 0 )
-		point2b.pos[x_degree] = vector( 0, 0, 0 )
+		#point2b.pos[x_degree] = vector( 0, 0, 0 )
 
 		if not use_lines : lines[angle].pos[1]=(offset*c,0,offset*s)
 		if not use_outer_line :
@@ -111,10 +120,10 @@ def update_view( x_degree, dist, quality ):
 		if use_lines : lines[x_degree].pos[1]=( dist_x, 0, dist_y)
 		if use_outer_line : outer_line.pos[x_degree]=( dist_x, 0, dist_y)
 
-message = text(pos=(0,0,0), string='PROTOX180 DATA', justify='center',
-               color=color.yellow, axis=(0,0,1), height=100,
-                depth=0.3, up=(10,10,-0.3))
-time.sleep(2)
+#message = text(pos=(0,0,0), string='PROTOX180 DATA', justify='center',
+#               color=color.yellow, axis=(0,0,1), height=100,
+#                depth=0.3, up=(10,10,-0.3))
+#time.sleep(2)
 
 while True:
 	lidar_data = lidar.read_lidar()
@@ -143,8 +152,8 @@ while True:
 			pass
 		#reset_dist_data()
 		update_view (x_degree, dist, 0 )
-		time.sleep(0.1)
-		reset_data()
+		#time.sleep(0.1)
+		#reset_data()
 	else:
 		#time.sleep(3)
 		print "no data"
