@@ -83,42 +83,42 @@ def reset_data():
 		point2.pos[i] = vector( 0, 0, 0 )
 		#point2b.pos[i] = vector( 0, 0, 0 )
 
-def update_view( x_degree, dist, quality ):
+def update_view( y_degree, dist, quality ):
 
 
 	global offset, use_outer_line, use_line
 	
-	if (x_degree >= 0 and x_degree <= 359 and dist < 350):
+	if (y_degree >= 0 and y_degree <= 360):
 		#reset_data()
-		print "raw:" , x_degree
-		x_degree = adjust_angle(x_degree)
-		print "adjusted:" , x_degree
+		#print "raw:" , x_degree
+		y_degree = adjust_angle(y_degree)
+		#print "adjusted:" , x_degree
 		
-		x_degree_rad = x_degree * math.pi / 180.0
-		c = math.cos(x_degree_rad)
-		s = -math.sin(x_degree_rad)
+		y_degree_rad = y_degree * math.pi / 180.0
+		c = math.cos(y_degree_rad)
+		s = -math.sin(y_degree_rad)
 		dist_mm = dist
 		dist_x = dist_mm*c
 		dist_y = dist_mm*s
 
 		#reset the point display
-		point.pos[x_degree] = vector( 0, 0, 0 )
+		point.pos[y_degree] = vector( 0, 0, 0 )
 		#pointb.pos[x_degree] = vector( 0, 0, 0 )
-		point2.pos[x_degree] = vector( 0, 0, 0 )
+		point2.pos[y_degree] = vector( 0, 0, 0 )
 		#point2b.pos[x_degree] = vector( 0, 0, 0 )
 
 		if not use_lines : lines[angle].pos[1]=(offset*c,0,offset*s)
 		if not use_outer_line :
-			outer_line.pos[x_degree]=(offset*c,0,offset*s)
-			outer_line.color[x_degree] = (0.1, 0.1, 0.2)
+			outer_line.pos[y_degree]=(offset*c,0,offset*s)
+			outer_line.color[y_degree] = (0.1, 0.1, 0.2)
 
-		if use_points : point.pos[x_degree] = vector( dist_x,0, dist_y)
-		if use_intensity : point2.pos[x_degree] = vector( (quality + offset)*c,0, (quality + offset)*s)
-		if use_lines : lines[x_degree].color[1] = (1,0,0)
-		if use_outer_line : outer_line.color[x_degree] = (1,0,0)
+		if use_points : point.pos[y_degree] = vector( dist_x,0, dist_y)
+		if use_intensity : point2.pos[y_degree] = vector( (quality + offset)*c,0, (quality + offset)*s)
+		if use_lines : lines[y_degree].color[1] = (1,0,0)
+		if use_outer_line : outer_line.color[y_degree] = (1,0,0)
 
-		if use_lines : lines[x_degree].pos[1]=( dist_x, 0, dist_y)
-		if use_outer_line : outer_line.pos[x_degree]=( dist_x, 0, dist_y)
+		if use_lines : lines[y_degree].pos[1]=( dist_x, 0, dist_y)
+		if use_outer_line : outer_line.pos[y_degree]=( dist_x, 0, dist_y)
 
 #message = text(pos=(0,0,0), string='PROTOX180 DATA', justify='center',
 #               color=color.yellow, axis=(0,0,1), height=100,
@@ -131,27 +131,34 @@ while True:
 
 	if (len(lidar_data) > 0):
 		try:
-			#y_degree = int(lidar_data[0])
-			y_degree = 0
-			#print self.y_degree 
-		except:
-			y_degree = 0
-			pass
-		try:
 			x_degree = int(lidar_data[1])
-			x_degree = x_degree #+ 90
-			#print x_degree
+			x_degree = 0
+			#print self.y_degree 
 		except:
 			x_degree = 0
 			pass
 		try:
-			dist = int(lidar_data[2])
-			#print self.dist
+			y_degree = int(lidar_data[2])
+			#y_degree = y_degree #+ 90
+			#print x_degree
+		except:
+			y_degree = 0
+			pass
+		try:
+			dist = int(lidar_data[3])
+			#print dist
 		except:
 			dist = 0 
 			pass
+		try:
+			quality = int(lidar_data[4])
+			#print dist
+		except:
+			quality = 0 
+			pass
 		#reset_dist_data()
-		update_view (x_degree, dist, 0 )
+		if quality > 0:
+			update_view (y_degree, dist, 0 )
 		#time.sleep(0.1)
 		#reset_data()
 	else:
