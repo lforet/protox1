@@ -1,6 +1,7 @@
 
 
-from lidar_faker_class import *
+#from lidar_faker_class import *
+from lidar3d_class import *
 import time
 from visual import *
 from visual.text import *
@@ -12,8 +13,10 @@ init_level = 0
 index = 0
 fps_rate = 60
 visualization = True
-resolution = 5
-lidar = lidar_faker(resolution)
+resolution = 1
+#lidar = lidar_faker(resolution)
+lidar = mobot_lidar3d("/dev/ttyUSB0", 115200, 3)
+
 
 #setup the window, view, etc
 scene =  display(title='PROTOX1 LIDAR Data',
@@ -59,6 +62,11 @@ use_outer_line = False
 use_lines = True
 use_intensity = True
 
+def reset_dist_data():
+	global resolution
+	for i in range((129600/resolution)):
+		point.pos[i] = 0
+
 def update_view( x_degree, y_degree, dist, quality ):
 	"""Updates the view of a sample.
 
@@ -88,10 +96,11 @@ def update_view( x_degree, y_degree, dist, quality ):
 	num = ((360/resolution*x_degree) + y_degree)
 	#print "num:", num
 	v1 = vector(dist_y, 0, dist_zy)
-	v2 = rotate(v1, (math.radians(90)), axis=(1,0,0))
-	v3 = rotate(v2, (math.radians(90-x_degree)), axis=(0,1,0))
+	#v2 = rotate(v1, (math.radians(90)), axis=(1,0,0))
+	#v3 = rotate(v2, (math.radians(90-x_degree)), axis=(0,1,0))
 	#print "vectors:", v1, v2
-	point.pos[num] = v3
+	#point.pos[num] = v3
+	point.pos[num] = v1
 	#pointb.pos[x_degree] = v2
 	#print len(point.pos)
 	#print point.pos[x_degree]
@@ -128,17 +137,54 @@ def update_view( x_degree, y_degree, dist, quality ):
             if use_lines : lines[ x_degree].pos[1]=( dist_x, 0, dist_y)
             if use_outer_line : outer_line.pos[ x_degree]=( dist_x, 0, dist_y)
 '''     
-message = text(pos=(0,0,0), string='PROTOX1 DATA', justify='center',
+
+
+
+
+
+
+message = text(pos=(0,0,0), string='PROTOX180 DATA', justify='center',
                color=color.yellow, axis=(0,0,1), height=100,
                 depth=0.3, up=(10,10,-0.3))
 time.sleep(5)
-while True:
 
-	print lidar.x_degree, lidar.y_degree, lidar.dist, lidar.quality
- 	update_view (lidar.x_degree, lidar.y_degree, lidar.dist, lidar.quality )
+while True:
+	lidar_data = lidar.read_lidar()
+	print lidar_data
+
+	if (len(lidar_data) > 0):
+		try:
+			#y_degree = int(lidar_data[0])
+			y_degree = 0
+			#print self.y_degree 
+		except:
+			y_degree = 0
+			pass
+		try:
+			x_degree = int(lidar_data[1])
+			x_degree = x_degree #+ 90
+			#print self.x_degree
+		except:
+			x_degree = 0
+			pass
+		try:
+			dist = int(lidar_data[2])
+			#print self.dist
+		except:
+			dist = 0 
+			pass
+		reset_dist_data()
+		update_view (y_degree, x_degree, dist, 0 )
+
+	else:
+		#time.sleep(3)
+		print "no data"
+
+		#print lidar.x_degree, lidar.y_degree, lidar.dist, lidar.quality
+ 		
 	#rate(60) # synchonous repaint at 60fps
 	if scene.kb.keys: # event waiting to be processed?
 		s = scene.kb.getkey() # get keyboard info
-		if s == "q": # stop motor
-			print "hi"
-			#sys.exit(-1)
+		print s
+		#if s == "q": 
+		#	sys.exit(-1)

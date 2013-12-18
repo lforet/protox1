@@ -12,8 +12,8 @@ init_level = 0
 index = 0
 fps_rate = 60
 visualization = True
-
-lidar = lidar_faker()
+resolution = 3
+lidar = lidar_faker(resolution)
 
 #setup the window, view, etc
 scene =  display(title='PROTOX1 LIDAR Data',
@@ -47,23 +47,12 @@ my_grid.frame.pos.y=-5
 
 
 # sample and intensity points
-point = points(pos=[(0,0,0) for i in range(25690)], size=5, color=(0 , 1, 0))
-#print type(point.pos), len(point.pos)
-#pointxy = [point]*365
-#print len(pointxy)
-#print point.pos[1]
-#print pointxy[1].pos[1]
-#sys.exit()
-#pointb = points(pos=[(0,0,0) for i in range(360)], size=5, color=(0.4, 0, 0))
-#point2 = points(pos=[(0,0,0) for i in range(360)], size=3, color=(1 , 1, 0))
-#point2b = points(pos=[(0,0,0) for i in range(360)], size=3, color=(0.4, 0.4, 0))
-#lines
-#outer_line= curve (pos=[(0,0,0) for i in range(360)], size=5, color=(1 , 0, 0))
-lines=[curve(pos=[(offset*cos(i* pi / 180.0),0,offset*-sin(i* pi / 180.0)),(offset*cos(i* pi / 180.0),0,offset*-sin(i* pi / 180.0))], color=[(0.1, 0.1, 0.2),(1,0,0)]) for i in range(360)]
-zero_intensity_ring = ring(pos=(0,0,0), axis=(0,1,0), radius=offset-1, thickness=1, color = color.yellow)
+point = points(pos=[(0,0,0) for i in range((129600/resolution))], size=5, color=(0 , 1, 0))
+#lines=[curve(pos=[(offset*cos(i* pi / 180.0),0,offset*-sin(i* pi / 180.0)),(offset*cos(i* pi / 180.0),0,offset*-sin(i* pi / 180.0))], color=[(0.1, 0.1, 0.2),(1,0,0)]) for i in range(360)]
+#zero_intensity_ring = ring(pos=(0,0,0), axis=(0,1,0), radius=offset-1, thickness=1, color = color.yellow)
 
-label_speed = label(pos = (0,-500,0), xoffset=1, box=False, opacity=0.1)
-label_errors = label(pos = (0,-1000,0), xoffset=1, text="errors: 0", visible = False, box=False)
+#label_speed = label(pos = (0,-500,0), xoffset=1, box=False, opacity=0.1)
+#label_errors = label(pos = (0,-1000,0), xoffset=1, text="errors: 0", visible = False, box=False)
 
 use_points = True
 use_outer_line = False
@@ -75,7 +64,7 @@ def update_view( x_degree, y_degree, dist, quality ):
 
 	Takes the angle (an int, from 0 to 359) and the list of four bytes of data in the order they arrived.
 	"""
-	global offset, use_outer_line, use_line
+	global resolution, offset, use_outer_line, use_line
 
 	x_degree_rad = x_degree * math.pi / 180.0
 	y_degree_rad = y_degree * math.pi / 180.0
@@ -96,7 +85,7 @@ def update_view( x_degree, y_degree, dist, quality ):
 	#print c, cy, s, sy
 	
 	#display point 	
-	num = ((120*x_degree) + y_degree)
+	num = ((360/resolution*x_degree) + y_degree)
 	#print "num:", num
 	v1 = vector(dist_y, 0, dist_zy)
 	v2 = rotate(v1, (math.radians(90)), axis=(1,0,0))
@@ -147,7 +136,7 @@ while True:
 
 	print lidar.x_degree, lidar.y_degree, lidar.dist, lidar.quality
  	update_view (lidar.x_degree, lidar.y_degree, lidar.dist, lidar.quality )
-	#rate(560) # synchonous repaint at 60fps
+	#rate(60) # synchonous repaint at 60fps
 	if scene.kb.keys: # event waiting to be processed?
 		s = scene.kb.getkey() # get keyboard info
 		if s == "q": # stop motor
