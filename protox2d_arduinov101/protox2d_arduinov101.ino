@@ -58,9 +58,9 @@ void setup()
 {
 
   Serial.begin(115200); // initialize serial interface   
-  pinMode(SERVO_PIN, OUTPUT); //initialize the servo pin
-  pinMode(Rdirpin,OUTPUT);  // set left  direction pin as an output pin
-  digitalWrite(Rdirpin, HIGH);
+  #//inMode(SERVO_PIN, OUTPUT); //initialize the servo pin
+  //pinMode(Rdirpin,OUTPUT);  // set left  direction pin as an output pin
+  //digitalWrite(Rdirpin, HIGH);
   analogWrite(MotorPWMPin, PWM4duty ); 
   //digitalWrite(MotorPWMPin, HIGH);
   //Serial.println("STARTING.......");
@@ -69,7 +69,7 @@ void setup()
   //delay(1000);
   Data_loop_index=1;
   //myservo.attach(12);
-  digitalWrite(13, HIGH);
+  //digitalWrite(13, HIGH);
 }
 
 void loop()
