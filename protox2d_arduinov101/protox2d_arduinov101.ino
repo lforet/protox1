@@ -16,8 +16,8 @@ unsigned char SpeedRPHhighbyte;
 unsigned char SpeedRPHLowbyte;
 int SpeedRPH = 0;
 const unsigned char PWM4dutyMax=255;
-const unsigned char PWM4dutyMin=200;
-unsigned char PWM4duty=255; // have to set a default value make motor start spining
+const unsigned char PWM4dutyMin=100;
+unsigned char PWM4duty=200; // have to set a default value make motor start spining
 
 int lenMicroSecondsOfPeriod = 50 * 1000; // 25 milliseconds (ms)
 int lenMicroSecondsOfPulse = 1 * 1000; // 1 ms is 0 degrees
@@ -59,12 +59,13 @@ void setup()
 
   Serial.begin(115200); // initialize serial interface   
   #//inMode(SERVO_PIN, OUTPUT); //initialize the servo pin
-  //pinMode(Rdirpin,OUTPUT);  // set left  direction pin as an output pin
-  //digitalWrite(Rdirpin, HIGH);
-  analogWrite(MotorPWMPin, PWM4duty ); 
+  pinMode(Rdirpin,OUTPUT);  // set left  direction pin as an output pin
+  pinMode(Rpwmpin,OUTPUT);  // set left  direction pin as an output pin
+  digitalWrite(Rdirpin, LOW);
+  analogWrite( Rpwmpin , PWM4duty ); 
   //digitalWrite(MotorPWMPin, HIGH);
   //Serial.println("STARTING.......");
-  SpeedControl ( DesiredRPM );
+  //SpeedControl ( DesiredRPM );
   //move_servo();
   //delay(1000);
   Data_loop_index=1;
@@ -146,7 +147,9 @@ void readData(unsigned char inByte){
       
     case 3: // Speed in RPH high byte
       SpeedRPHhighbyte=inByte;
-      SpeedRPH=(SpeedRPHhighbyte<<8)|SpeedRPHLowbyte;
+      SpeedRPH=((SpeedRPHhighbyte<<8)|SpeedRPHLowbyte) / 60;
+      //Serial.print("s:");
+      //Serial.println(SpeedRPH);
       SpeedControl ( DesiredRPM ) ; //
       break;
       
@@ -157,11 +160,11 @@ void readData(unsigned char inByte){
     case 5:
       distanceHigh=inByte & B00111111; //mask 14 and 15 bits 
       distance[0] = 0;  
-      //flag1=inByte & B10000000;
-      //flag2=inByte & B01000000;
-      //if (flag1 == 0 && flag2 == 0 ){
+      flag1=inByte & B10000000;
+      flag2=inByte & B01000000;
+      if (flag1 == 0 && flag2 == 0 ){
         distance[0] = (distanceHigh<<8)|distanceLow; 
-      //}
+      }
       break;
       
     case 6:   
@@ -181,11 +184,11 @@ void readData(unsigned char inByte){
     case 9:
       distanceHigh=inByte & B00111111; //mask 14 and 15 bits 
       distance[1]= 0;  
-      //flag1=inByte & B10000000;
-      //flag2=inByte & B01000000;
-      //if (flag1 == 0 && flag2 == 0 ){
+      flag1=inByte & B10000000;
+      flag2=inByte & B01000000;
+      if (flag1 == 0 && flag2 == 0 ){
         distance[1] = (distanceHigh<<8)|distanceLow; 
-      //}
+      }
       break;
       
     case 10:
@@ -205,11 +208,11 @@ void readData(unsigned char inByte){
     case 13:
       distanceHigh=inByte & B00111111; //mask 14 and 15 bits 
       distance[2]= 0;  
-      //flag1=inByte & B10000000;
-      //flag2=inByte & B01000000;
-      //if (flag1 == 0 && flag2 == 0){
+      flag1=inByte & B10000000;
+      flag2=inByte & B01000000;
+      if (flag1 == 0 && flag2 == 0){
         distance[2]= (distanceHigh<<8)|distanceLow; 
-      //}
+      }
       break;
       
     case 14:   
@@ -229,11 +232,11 @@ void readData(unsigned char inByte){
     case 17:
       distanceHigh = inByte & B00111111; //mask 14 and 15 bits 
       distance[3]= 0;  
-      //flag1=inByte & B10000000;
-      //flag2=inByte & B01000000;
-      //if (flag1 == 0 && flag2 == 0){
+      flag1=inByte & B10000000;
+      flag2=inByte & B01000000;
+      if (flag1 == 0 && flag2 == 0){
         distance[3] = (distanceHigh<<8)|distanceLow; 
-      //}
+      }
       break;
       
     case 18:  
@@ -254,36 +257,40 @@ void readData(unsigned char inByte){
         checksum_highByte = inByte;
         checksum = int(checksum_lowByte) | int((checksum_highByte << 8));
            
-        if ( checksum == calculate_checksum()){
+        //if ( checksum == calculate_checksum()){
         
             //Serial.print("Checksums Match!");
             //Serial.println(""); 
             
             for(i = 0; i  < 4; i+=1){
                 angleIndex = Data_4deg_index*4 + i;
-                //if (distance[i] > 0){
-                  //Serial.print("  angle:");
-                  Serial.print("A1");
-                  Serial.print(",");
-                  Serial.print("0");
-                  Serial.print(",");
-                  Serial.print(angleIndex);
-                  Serial.print(",");
-                  //Serial.print("  Distance:");    
-                  Serial.print(distance[i], DEC);
-                  Serial.print(",");
-                  Serial.print(quality[i], DEC);
-                  Serial.print(",");
-                  Serial.print(SpeedRPH/60);
-                  Serial.println("");
-                  //Serial.print(",");
-                  //Serial.print (" ");
-                  //Serial.print("mm ");
-                  //Serial.print("  Quality: ");
-                  //Serial.println(quality[i], DEC);
-                  //Serial.print("freeMemory()=");
-                  //Serial.println(freeRam());
-                //}
+                if (angleIndex >= 0 && angleIndex <= 359){
+                  if (quality[i] > 0){
+                    if (distance[i] > 0 && distance[i] <= 6555){
+                      //Serial.print("  angle:");
+                      Serial.print("A1");
+                      Serial.print(",");
+                      Serial.print("0");
+                      Serial.print(",");
+                      Serial.print(angleIndex);
+                      Serial.print(",");
+                      //Serial.print("  Distance:");    
+                      Serial.print(distance[i], DEC);
+                      Serial.print(",");
+                      Serial.print(quality[i], DEC);
+                      Serial.print(",");
+                      Serial.print(SpeedRPH);
+                      Serial.println("");
+                      //Serial.print(",");
+                      //Serial.print (" ");
+                      //Serial.print("mm ");
+                      //Serial.print("  Quality: ");
+                      //Serial.println(quality[i], DEC);
+                      //Serial.print("freeMemory()=");
+                      //Serial.println(freeRam());
+                    }
+                  }
+                }
              //LED_Blink();
             }
             /*
@@ -298,7 +305,7 @@ void readData(unsigned char inByte){
                 move_servo();  
             } 
             */            
-        } 
+        //} 
          
        break;   
      
@@ -346,18 +353,19 @@ int calculate_checksum(){
 // Very simple speed control
 void SpeedControl ( int RPMinput)
 {
+ int delta = 1;
  //if (Data_4deg_index%30==0) { // I only do 3 updat I feel it is good enough for now
  //if (Data_4deg_index%40==0) { // I only do 3 updat I feel it is good enough for now
-    if ((SpeedRPH/60) < RPMinput){
-       if (PWM4duty < PWM4dutyMax){ 
-         PWM4duty++; // limit the max PWM make sure it don't overflow and make LDS stop working
+    if ((SpeedRPH) < RPMinput){
+       if ( (PWM4duty + delta) <= PWM4dutyMax){ 
+         PWM4duty = PWM4duty + delta; // limit the max PWM make sure it don't overflow and make LDS stop working
         // Serial.print("increasing speed");
          //Serial.println(PWM4duty);
        }
     }
-    if ((SpeedRPH/60) > RPMinput){
-       if(PWM4duty>PWM4dutyMin){
-         PWM4duty--; //Have to limit the lowest pwm keep motor running
+    if ((SpeedRPH) > RPMinput){
+       if( (PWM4duty - delta) >= PWM4dutyMin){
+         PWM4duty = PWM4duty - delta; //Have to limit the lowest pwm keep motor running
         // Serial.print("decreasing speed");
         // Serial.println(PWM4duty);
        }
@@ -365,10 +373,12 @@ void SpeedControl ( int RPMinput)
   //}
   //Serial.print("PWM4duty:");
   //Serial.println(PWM4duty);
-  analogWrite(MotorPWMPin, PWM4duty ); // update value
+  analogWrite(Rpwmpin, PWM4duty ); // update value
   //digitalWrite(MotorPWMPin, HIGH ); // update value
 }
 
+
+/*
 void move_servo(){
   int i;
   //Serial.println(" ");
@@ -405,6 +415,10 @@ void update_servo_pos(){
 
 }  
 
+*/
+
+
+/*
 
 void Servo_Sweep()
 {
@@ -452,6 +466,7 @@ void Servo_Sweep()
          delay(20);
     }
 }
+*/
 
 
 /*
@@ -529,7 +544,7 @@ Serial.println(distY);
   
 //}
 
-
+/*
 void Motor_Forward(int spd)
 {
   digitalWrite(Rdirpin, HIGH);
@@ -554,3 +569,5 @@ int freeRam () {
   int v; 
   return (int) &v - (__brkval == 0 ? (int) &__heap_start : (int) __brkval); 
 }
+*/
+
