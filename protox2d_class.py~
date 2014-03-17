@@ -1,14 +1,12 @@
 #!/usr/bin/python
 
-import time
-import serial
+import time, serial, sys
 
 class protox():
 	def __init__(self, com_port):
-		# serial port
-		self.com_port = com_port
+		# setup serial port
 		self.baudrate = 115200
-		self.ser = serial.Serial(self.com_port, self.baudrate)
+		self.serial_com = serial.Serial(com_port, self.baudrate)
 	
 	def run(self):
 		while True:
@@ -18,16 +16,16 @@ class protox():
 		
 	def read_lidar(self):
 			data = []
-			self.x_degree = 0
-			self.y_degree = 0
-			self.dist = 0
-			data = self.ser.readline().strip('\r\n').split(',')
+			data = self.serial_com.readline().strip('\r\n').split(',')
 			return data
 
 
 if __name__== "__main__":
 
-	lidar = protox("/dev/ttyUSB1")
+	com_port = "/dev/ttyUSB0"
+	if len(sys.argv) > 0:
+		com_port = sys.argv[1]
+	lidar = protox(com_port)
 	
 	while True:
 		lidar_data = lidar.read_lidar()
